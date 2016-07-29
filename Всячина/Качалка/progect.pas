@@ -1,0 +1,132 @@
+unit progect;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, wininet, ComCtrls;
+
+type
+  TForm1 = class(TForm)
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    Label1: TLabel;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    BitBtn3: TBitBtn;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    BitBtn4: TBitBtn;
+    SaveDialog1: TSaveDialog;
+    SpeedButton1: TSpeedButton;
+    ProgressBar1: TProgressBar;
+    Label5: TLabel;
+    procedure BitBtn1Click(Sender: TObject);
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn4Click(Sender: TObject);
+    procedure BitBtn3Click(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+  nado: boolean;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function FmtFileSize(Size: Integer): string;   // Функция для прогресс бар
+  begin 
+    if Size >= $F4240 then 
+      Result := Format('%.2f', [Size / $F4240]) + ' Mb' 
+    else 
+    if Size < 1024 then
+      Result := IntToStr(Size) + ' bytes' 
+    else 
+      Result := Format('%.2f', [Size / 1024]) + ' Kb';
+  end;
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+var F: File;
+    ResumePos,BufferLen,dwBytesRead,SumSize,fileSizes: DWORD;
+    hSession, hURL: HInternet;
+    Buffer: array[1..1024] of Byte;
+    err: boolean;
+
+
+begin
+SumSize:=0; ResumePos:=0;   //Инициализируемся
+AssignFile (F,Edit2.Text);  //Свяжемся с файлом
+IF FileExists (Edit2.Text) then //Есть ли на диске этот файл
+  begin
+   Reset(f,1); //Ах, есть? Откроем!
+   ResumePos:=FileSize(F); //Откуда докачать
+   Seek(F, FileSize(F)); //А писать бум в конец
+  end else ReWrite(f,1);  //А раз нет, так создадим
+
+NADO:= TRUE; //Надо качать...
+//Открыли сессию
+hSession:= InternetOpen(pChar(Application.ExeName),PRE_CONFIG_INTERNET_ACCESS,nil,nil,0);
+//И наш УРЛ
+
+
+
+hURL := InternetOpenURL(hSession,PChar(Edit1.Text),nil,0,0,0);
+//Сколько там наш файл весит?
+InternetQueryDataAvailable(hURL, SumSize,0,0);
+label4.Caption:= IntToStr (SumSize); //Сообщим об этом
+if ResumePos>0 then //Если докачиваем,
+ begin
+ InternetSetFilePointer(hURL,ResumePos,nil,0,0); //То сместимся
+ end;
+
+
+REPEAT //Качаем
+ err:= InternetReadFile(hURL, @Buffer,SizeOf(Buffer),BufferLen); //Читаем буфер
+ IF err= false then //Ошибка чтения
+  begin
+  ShowMessage ('Произошел облом '); //Сообщим и выходим
+  exit;
+  end;
+ BlockWrite(f, Buffer, BufferLen); //Пишем в файл
+ Application.Processmessages;
+
+{ Показать прогресс }
+    ProgressBar1.Position := Round(dwBytesRead * 100 / FileSizes);
+    Form1.Label5.Caption := Format('%s of %s / %d %%',
+  [FmtFileSize(dwBytesRead),
+  FmtFileSize(FileSizes),
+  ProgressBar1.Position]);
+
+UNTIL (BufferLen= 0) Or (NADO= FALSE); //Качаем, пока не все или надо
+ShowMessage ('Успешно загружено!');
+end;
+
+procedure TForm1.BitBtn2Click(Sender: TObject);
+begin
+nado:= false;
+end;
+
+procedure TForm1.BitBtn4Click(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TForm1.BitBtn3Click(Sender: TObject);
+begin
+ IF SaveDialog1.Execute then
+ Edit2.Text:= SaveDialog1.FileName;
+end;
+
+procedure TForm1.SpeedButton1Click(Sender: TObject);
+begin
+ Edit1.PasteFromClipboard;
+end;
+
+end.

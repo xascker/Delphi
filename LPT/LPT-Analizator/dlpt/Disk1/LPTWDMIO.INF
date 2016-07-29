@@ -1,0 +1,72 @@
+;
+; lptwdmio.inf - информационный файл для установки драйвера lptwdmio.sys
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+DriverVer=25/08/2002,1.01.0000
+Class=Unknown
+ClassGuid={4d36e97e-e325-11ce-bfc1-08002be10318}
+Provider=%PROVIDER%
+
+[DestinationDirs]
+DefaultDestDir = 10,system32\drivers ;%SystemRoot%\system32\drivers
+
+[ClassInstall32]
+Addreg=ABCDHWClassReg
+
+[ABCDHWClassReg]
+HKR,,,0,"Assembler drivers"
+HKR,,Icon,,-5
+
+[Manufacturer]
+%PROVIDER%=PROVIDER
+
+[SourceDisksNames]
+1="",,
+
+[SourceDiskFiles]
+lptwdmio.sys=1
+
+[lptwdmio_CopyFiles]
+lptwdmio.sys
+
+[PROVIDER]
+%PLMKDEVICE%=lptwdmio_Install
+
+[lptwdmio_Install]
+CopyFiles = lptwdmio_CopyFiles
+AddReg = lptwdmio_AddReg
+
+[lptwdmio_Install.NT]
+CopyFiles = lptwdmio_CopyFiles
+
+[lptwdmio_Install.NT.Services]
+AddService = lptwdmio,0x00000002,lptwdmio_Install_services
+
+[lptwdmio_Install.nt.FactDef]
+
+[lptwdmio_Install_services]
+DisplayName    = "lptwdmioservice"
+ServiceType    = 1 ;    SERVICE_KERNEL_DRIVER
+StartType      = 3 ;    SERVICE_DEMAND_START
+ErrorControl   = 1 ;    SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\system32\drivers\lptwdmio.sys
+LoadOrderGroup = "Extended Base"
+
+[lptwdmio_AddReg]
+HKR,,DevLoader,,"*ntkern"
+HKR,,NTMPDriver,,"lptwdmio.sys"
+
+[lptwdmio_Install.FactDef]
+
+[Strings]
+PROVIDER="Grechko J.B."
+PLMKDEVICE="Driver for direct LPT port access"
+
+[Strings.0419]
+PROVIDER="Гречко Ю.Б."
+PLMKDEVICE="Драйвер для доступа к портам LPT"
+
+
+

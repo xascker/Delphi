@@ -1,0 +1,13 @@
+program Project1;
+
+uses
+   Windows,Dialogs;
+
+begin
+ while true do begin
+   Sleep(5000) ;
+   MessageDlg('Хватит работать!!!', mtError, [mbOk], 0) ;
+ end;
+
+end.
+ 

@@ -1,0 +1,98 @@
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Spin, Buttons, IniFiles;
+
+const
+  CfgFile = 'ScreenSaver.INI';
+
+type
+  TForm1 = class(TForm)
+    spnSpheres: TSpinEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    spnSize: TSpinEdit;
+    spnSpeed: TSpinEdit;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    BitBtn3: TBitBtn;
+    procedure FormCreate(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn3Click(Sender: TObject);
+  private
+    procedure LoadConfig;
+    procedure SaveConfig;
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses Unit2;
+
+{$R *.dfm}
+
+
+procedure TForm1.LoadConfig;
+var
+ inifile : TIniFile;
+begin
+ inifile := TIniFile.Create(CfgFile);
+   try
+     with inifile do begin
+       spnSpheres.Value := ReadInteger('Config', 'Spheres', 50);
+       spnSize.Value    := ReadInteger('Config', 'Size', 100);
+       spnSpeed.Value   := ReadInteger('Config', 'Speed', 10);
+     end;
+   finally
+ inifile.Free;
+end;
+end; {TCfgFrm.LoadConfig}
+
+procedure TForm1.SaveConfig;
+var
+ inifile : TIniFile;
+begin
+ inifile := TIniFile.Create(CfgFile);
+   try
+     with inifile do begin
+       WriteInteger('Config', 'Spheres', spnSpheres.Value);
+       WriteInteger('Config', 'Size', spnSize.Value);
+       WriteInteger('Config', 'Speed', spnSpeed.Value);
+     end;
+  finally
+ inifile.Free;
+end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+ LoadConfig;
+end;
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+begin
+ SaveConfig;
+ Close;
+end;
+
+procedure TForm1.BitBtn2Click(Sender: TObject);
+begin
+ Close;
+end;
+
+procedure TForm1.BitBtn3Click(Sender: TObject);
+begin
+ Form2.Show;
+end;
+
+end.

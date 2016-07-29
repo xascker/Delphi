@@ -1,0 +1,283 @@
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms,
+  Dialogs, Grids, ValEdit, StdCtrls, Menus, Buttons,  ComCtrls,
+  ShellCtrls, ExtCtrls, FileCtrl;
+
+type
+  TForm1 = class(TForm)
+    Label1: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Button5: TButton;
+    Edit1: TEdit;
+    OpenDialog1: TOpenDialog;
+    OpenDialog2: TOpenDialog;
+    MainMenu1: TMainMenu;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    Label2: TLabel;
+    FilesListBox: TListBox;
+    SaveDialog1: TSaveDialog;
+    ValueListEditor1: TValueListEditor;
+    N6: TMenuItem;
+    N7: TMenuItem;
+    N8: TMenuItem;
+    N9: TMenuItem;
+    procedure FormCreate(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure FilesListBoxDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure N2Click(Sender: TObject);
+    procedure N3Click(Sender: TObject);
+    procedure N4Click(Sender: TObject);
+    procedure N5Click(Sender: TObject);
+    procedure N7Click(Sender: TObject);
+    procedure N8Click(Sender: TObject);
+    procedure N9Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    FullList:TStringList;
+
+    procedure FillFileList;
+    procedure GenerateFileList;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+Button3.Enabled := False;
+Button4.Enabled := False;
+N3.Enabled := False;
+N4.Enabled := False;
+FullList:=TStringList.Create;
+end;
+
+procedure TForm1.FillFileList;
+begin
+  with FilesListBox do
+    begin
+      FilesListBox.Items:=FullList;
+    end;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+i:integer;
+begin
+  if OpenDialog1.Execute then
+    begin
+      Edit1.Text:=OpenDialog1.FileName;
+      with FullList do
+        begin
+          LoadFromFile(Edit1.Text);
+          i:=0;
+          while i<=Count-1 do
+            begin
+              if (Trim(Strings[i])='') or (Strings[i][1]='#') then
+                Delete(i)
+              else Inc(i);
+            end;
+        end;
+      FillFileList;
+    end;
+  Button3.Enabled := True;
+  Button4.Enabled := True;
+  N3.Enabled := True;
+  N4.Enabled := True;
+  Label2.Caption := 'PlayList открыт для редактирования ';
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);//Сохранить
+var TSL:TStringList;
+begin
+  TSL:=TStringList.Create;
+  TSL.Text:=FilesListBox.Items.Text;
+  TSL.Insert(0,'#EXTM3U');
+  TSL.SaveToFile(Edit1.Text);
+  TSL.Free;
+  Label2.Caption := 'PlayList сохранен '
+end;
+
+
+procedure TForm1.Button5Click(Sender: TObject);//Удалить
+begin
+ValueListEditor1.Strings.Delete(0);
+Label2.Caption := 'Файл удален';
+end;
+
+
+procedure TForm1.Button2Click(Sender: TObject);//Добавить
+var
+fName : string;
+v : integer;
+begin
+  if OpenDialog2.Execute then
+    begin
+      fName := OpenDialog2.FileName;
+      ValueListEditor1.Values[fName] := OpenDialog2.Title;
+      if  fName <>'' then ValueListEditor1.Values[fName]:='4';
+   end;
+v := ValueListEditor1.Strings.Count;
+Label2.Caption := 'Добавлено '+ FloatToStr(v)+' файла' ;
+end;
+
+procedure TForm1.GenerateFileList;
+var i,j:integer;
+begin
+  with FilesListBox do
+    begin
+          FilesListBox.Items:=FullList;
+      for j:=1 to ValueListEditor1.RowCount-1 do
+        begin
+          i:=0;
+          if  ValueListEditor1.Cells[0,j]<>'' then
+            while i<=Count-1 do
+              begin
+                if (i mod (StrToIntDef(ValueListEditor1.Cells[1,j],4)+j))=0 then
+                  begin
+                    Items.Insert(i,ValueListEditor1.Cells[0,j]);
+                    Inc(i);
+                  end;
+                Inc(i);
+              end;
+        end;
+    end;
+end;
+
+
+procedure TForm1.Button3Click(Sender: TObject);//Сгенирировать
+Var
+v : integer;
+begin
+GenerateFileList;
+v := ValueListEditor1.Strings.Count;
+Label2.Caption := 'Сгенирированно '+ FloatToStr(v)+' файла' ;
+end;
+
+
+procedure TForm1.FilesListBoxDrawItem(Control: TWinControl; Index: Integer;
+  Rect: TRect; State: TOwnerDrawState);
+var t:integer;
+begin
+  if ValueListEditor1.FindRow(FilesListBox.Items[Index],t) then
+     FilesListBox.Canvas.Font.Color := clRed;
+     FilesListBox.Canvas.TextRect(Rect,Rect.Left+1,Rect.Top+1,FilesListBox.Items[Index]);
+end;
+
+
+// Меню "Файл" //////////////////////  И "Правка"
+
+procedure TForm1.N2Click(Sender: TObject);
+//Открытие плейлиста
+var
+i:integer;
+begin
+  if OpenDialog1.Execute then
+    begin
+      Edit1.Text:=OpenDialog1.FileName;
+      with FullList do
+        begin
+          LoadFromFile(Edit1.Text);
+          i:=0;
+          while i<=Count-1 do
+            begin
+              if (Trim(Strings[i])='') or (Strings[i][1]='#') then
+                Delete(i)
+              else Inc(i);
+            end;
+        end;
+      FillFileList;
+    end;
+Button3.Enabled := True;
+Button4.Enabled := True;
+N3.Enabled := True;
+N4.Enabled := True;
+Label2.Caption := 'PlayList открыт для редактирования ';
+end;
+
+
+procedure TForm1.N3Click(Sender: TObject);
+var TSL:TStringList;
+begin
+  TSL:=TStringList.Create;
+  TSL.Text:=FilesListBox.Items.Text;
+  TSL.Insert(0,'#EXTM3U');
+  TSL.SaveToFile(Edit1.Text);
+  TSL.Free;
+  Label2.Caption := 'PlayList сохранен '
+end;
+
+
+procedure TForm1.N4Click(Sender: TObject);
+var TSL:TStringList;
+begin
+  TSL:=TStringList.Create;
+  if SaveDialog1.Execute then
+    begin
+      TSL.Text:=FilesListBox.Items.Text;
+      TSL.Insert(0,'#EXTM3U');
+      TSL.SaveToFile(SaveDialog1.FileName);
+    end;
+  TSL.Free;
+  Label2.Caption := 'PlayList сохранен '
+end;
+
+
+procedure TForm1.N5Click(Sender: TObject);
+begin
+close;
+end;
+
+procedure TForm1.N7Click(Sender: TObject);
+var
+fName : string;
+v : integer;
+begin
+  if OpenDialog2.Execute then
+    begin
+      fName := OpenDialog2.FileName;
+      ValueListEditor1.Values[fName] := OpenDialog2.Title;
+      if  fName <>'' then ValueListEditor1.Values[fName]:='4';
+   end;
+v := ValueListEditor1.Strings.Count;
+Label2.Caption := 'Добавлено '+ FloatToStr(v)+' файла' ;
+end;
+
+procedure TForm1.N8Click(Sender: TObject);
+begin
+ValueListEditor1.Strings.Delete(0);
+Label2.Caption := 'Файл удален';
+end;
+
+procedure TForm1.N9Click(Sender: TObject);
+Var
+v : integer;
+begin
+GenerateFileList;
+v := ValueListEditor1.Strings.Count;
+Label2.Caption := 'Сгенирированно '+ FloatToStr(v)+' файла' ;
+end;
+
+end.

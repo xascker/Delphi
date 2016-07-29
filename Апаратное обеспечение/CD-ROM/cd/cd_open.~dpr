@@ -1,0 +1,256 @@
+program cd_open;
+
+
+uses
+  windows,
+  ShellAPI,
+  Messages;
+
+const
+ ClassName='CDejectorClass';
+ WM_NOTIFYTRAYICON=WM_USER+1;
+ id_all_eject=100;
+ id_all_inject=101;
+ id_eject_with=200;
+ id_eject_without=201;
+ id_inject=300;
+ id_about=400;
+ id_check=500;
+var
+ cd_open_wnd:hWnd;
+ hmenu:hWnd;
+
+function CheckOthers:boolean;
+var hLib:cardinal;
+    IsOthersFunc:function:boolean;
+begin
+hLib:=LoadLibrary('kernel32.dll');
+@IsOthersFunc:=GetProcAddress(hLib,'IsDebuggerPresent');
+if IsOthersFunc then CheckOthers:=true
+else CheckOthers:=false;
+FreeLibrary(hLib);
+end;
+
+function checkregistry:boolean;
+var hk:HKEY;
+    dwData:DWORD;
+    Data:array[1..64] of char;
+    st:DWORD;
+begin
+hk:=0;
+dwData:=64;
+st:=REG_SZ;
+RegOpenKeyEx(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run\', 0, KEY_ALL_ACCESS, hk);
+if RegQueryValueEx(hk,'cdejector',nil,@st,@Data,@dwData)=ERROR_SUCCESS then
+   checkregistry:=true
+else checkregistry:=false;
+RegCloseKey(hk);
+end;
+
+procedure autostart_dis_enb;
+var hk:HKEY;
+    dw,st:DWORD;
+    data:string;
+begin
+hk:=0;
+if checkregistry=true then
+ begin
+  RegOpenKeyEx(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run\', 0, KEY_ALL_ACCESS, hk);
+  RegDeleteValue(hk,'cdejector');
+  RegCloseKey(hk);
+  CheckMenuItem(hmenu,id_check,MF_UNCHECKED);
+ end
+else
+ begin
+  st:=REG_SZ;
+  data:=ParamStr(0);
+  dw:=length(data);
+  RegOpenKeyEx(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run\', 0, KEY_ALL_ACCESS, hk);
+  RegSetValueEx(hk,'cdejector',0,st, PChar(data),dw);
+  RegCloseKey(hk);
+  CheckMenuItem(hmenu,id_check,MF_CHECKED);
+ end;
+end;
+
+procedure eject(param:string);
+var cds:string;
+    Buf:array[0..255] of char;
+    ReturnStr,bytesreturned: DWORD;
+    i:byte;
+    hDC: hWnd;
+begin
+i:=0;
+    ReturnStr:=GetLogicalDriveStrings(sizeof(Buf),Buf);
+    repeat
+     if GetDriveType(@Buf[i])=DRIVE_CDROM then cds:=cds+Buf[i];
+     i:=i+4;
+    until (i>ReturnStr-1);
+    for i:=0 to length(cds) do
+       begin
+        hDC:=CreateFile(pchar('\\.\'+cds[i]+':'),GENERIC_WRITE or GENERIC_READ, FILE_SHARE_WRITE or FILE_SHARE_READ,nil, OPEN_EXISTING, 0, 0);
+        if hDC=INVALID_HANDLE_VALUE then
+        hDC:=CreateFile(pchar('\\.\'+cds[i]+':'), GENERIC_READ, FILE_SHARE_READ,nil, OPEN_EXISTING, 0, 0);
+        if param='all' then DeviceIoControl(hDC,$002D4808,nil,0,nil,0,bytesreturned,nil);
+        if param='without' then
+         if DeviceIoControl(hDC,$002D4800,nil,0,nil,0,bytesreturned,nil)=false then
+          DeviceIoControl(hDC,$002D4808,nil,0,nil,0,bytesreturned,nil);
+        if param='with' then
+         if DeviceIoControl(hDC,$002D4800,nil,0,nil,0,bytesreturned,nil)=true then
+          DeviceIoControl(hDC,$002D4808,nil,0,nil,0,bytesreturned,nil);
+        CloseHandle(hDC);
+       end;
+end;
+
+procedure inject;
+var cds:string;
+    Buf:array[0..255] of char;
+    ReturnStr,bytesreturned: DWORD;
+    i:byte;
+    hDC: hWnd;
+begin
+i:=0;
+    ReturnStr:=GetLogicalDriveStrings(sizeof(Buf),Buf);
+    repeat
+     if GetDriveType(@Buf[i])=DRIVE_CDROM then cds:=cds+Buf[i];
+     i:=i+4;
+    until (i>ReturnStr-1);
+    for i:=0 to length(cds) do
+       begin
+        hDC:=CreateFile(pchar('\\.\'+cds[i]+':'),GENERIC_WRITE or GENERIC_READ, FILE_SHARE_WRITE or FILE_SHARE_READ,nil, OPEN_EXISTING, 0, 0);
+        if hDC=INVALID_HANDLE_VALUE then
+        hDC:=CreateFile(pchar('\\.\'+cds[i]+':'), GENERIC_READ, FILE_SHARE_READ,nil, OPEN_EXISTING, 0, 0);
+        if DeviceIoControl(hDC,$002D4800,nil,0,nil,0,bytesreturned,nil)=false then
+        DeviceIoControl(hDC,$002D480C,nil,0,nil,0,bytesreturned,nil);
+        CloseHandle(hDC);
+       end;
+end;
+
+function cd_eject_wndProc(wnd:hWnd; Msg, wParam, lParam : longint):longint;stdcall;
+var tray:TNotifyIconData;
+    lppoint:TPOINT;
+begin
+case Msg of
+ WM_NOTIFYTRAYICON:
+  begin
+  if lparam=WM_RBUTTONDOWN then
+  begin
+   GetCursorPos(lppoint);
+   SetForegroundWindow(cd_open_wnd);
+   TrackPopupMenu(hmenu,TPM_RIGHTALIGN,lppoint.x,lppoint.y,0,cd_open_wnd,nil);
+   PostMessage(cd_open_wnd,WM_NULL,0,0);
+   result:=0;
+  end;
+  end;
+ WM_COMMAND:
+  begin
+   if wParam=0 then SendMessage(cd_open_wnd,WM_CLOSE,wparam,lparam);
+   case wParam of
+    id_all_eject: eject('all');
+    id_all_inject: inject;
+    id_eject_with: eject('with');
+    id_eject_without:eject('without');
+    id_inject: inject;
+    id_about:MessageBox(cd_open_wnd,PChar('cd_open Автор: serg'), PChar('О программе...'), MB_OK);
+    id_check:autostart_dis_enb;
+   end;
+  end;
+ WM_ENDSESSION:
+  begin
+   eject('with');
+   result:=0;
+  end;
+ WM_DESTROY: begin
+      with tray do begin
+        cbSize := sizeof(TNotifyIconData);
+        wnd := cd_open_wnd;
+        uID := 0;
+      end;
+      Shell_NotifyIcon(NIM_DELETE, @tray);
+      PostQuitMessage(0);
+      result := 0;
+    end
+else Result:=DefWindowProc(wnd,Msg,wParam,lParam);
+end;
+end;
+
+function CreateCDEjectWnd: hWnd;
+var
+  wc: WndClass;
+begin
+  wc.style := 0;
+  wc.lpfnWndProc := @cd_eject_wndProc;
+  wc.cbClsExtra := 0;
+  wc.cbWndExtra := 0;
+  wc.hInstance := hInstance;
+  wc.hIcon := LoadIcon(0,IDI_APPLICATION);
+  wc.hCursor := 0;
+  wc.hbrBackground := COLOR_WINDOW;
+  wc.lpszMenuName := nil;
+  wc.lpszClassName := ClassName;
+  if RegisterClass(wc) = 0 then
+    halt(0);
+  result := CreateWindowEx(WS_EX_APPWINDOW, ClassName,
+  'Достань его', WS_POPUP, 0, 0, 0, 0, 0, 0, hInstance, nil);
+  if result = 0 then
+    halt(0);
+end;
+
+procedure CreateTray;
+var
+  tray: TNotifyIconData;
+begin
+  with tray do begin
+    cbSize := sizeof(TNotifyIconData);
+    wnd :=cd_open_wnd;
+    uID := 0;
+    uFlags := NIF_ICON or NIF_MESSAGE or NIF_TIP;
+    uCallBackMessage := WM_NOTIFYTRAYICON;
+    hIcon := LoadIcon(hInstance, 'cdicon');
+    szTip := ('Достань его');
+  end;
+  Shell_NotifyIcon(NIM_ADD, @tray);
+end;
+
+procedure CreateMenu;
+var id_all,id_eject:hWnd;
+begin
+id_all:=CreatePopupMenu;
+AppendMenu(id_all, MF_STRING,id_all_eject,PChar('открыть'));
+AppendMenu(id_all, MF_STRING, id_all_inject, PChar('закрыть'));
+id_eject:=CreatePopupMenu;
+AppendMenu(id_eject, MF_STRING,id_eject_with,PChar('с диском'));
+AppendMenu(id_eject, MF_STRING, id_eject_without, PChar('без диска'));
+hmenu:=CreatePopupMenu;
+AppendMenu(hmenu, MF_POPUP,id_all,PChar('все CD'));
+AppendMenu(hmenu, MF_POPUP,id_eject,PChar('Открыть'));
+AppendMenu(hmenu, MF_STRING,id_inject,PChar('Закрыть'));
+AppendMenu(hmenu, MF_STRING or MF_CHECKED, id_check, PChar('стартовать с виндой'));
+if checkregistry=true then  CheckMenuItem(hmenu,id_check,MF_CHECKED)
+else CheckMenuItem(hmenu,id_check,MF_UNCHECKED);
+AppendMenu(hmenu, MF_STRING,id_about,PChar('о программе'));
+AppendMenu(hmenu, MF_STRING,0,PChar('Выход'));
+end;
+
+procedure CheckExeCopy;
+begin
+CreateMutex(nil,true,'cd_ejector');
+if GetLastError=ERROR_ALREADY_EXISTS then
+ begin
+  MessageBox(0,'Данная программа уже запущена!','Ошибка!',0);
+  halt(0);
+ end;
+end;
+
+var msg:TMsg;
+begin
+if CheckOthers then halt(0);
+CheckExeCopy;
+CreateMenu;
+cd_open_wnd:=CreateCDEjectWnd;
+CreateTray;
+while (GetMessage(msg, 0, 0, 0)) do begin
+    TranslateMessage(msg);
+    DispatchMessage(msg);
+  end;
+end.
+ 

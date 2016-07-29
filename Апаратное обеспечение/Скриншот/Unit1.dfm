@@ -1,0 +1,38 @@
+object Form1: TForm1
+  Left = 214
+  Top = 114
+  Width = 224
+  Height = 132
+  Caption = #1057#1082#1088#1080#1085#1096#1086#1090
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object GroupBox1: TGroupBox
+    Left = 16
+    Top = 8
+    Width = 177
+    Height = 81
+    Caption = #1057#1082#1088#1080#1085#1096#1086#1090' '
+    TabOrder = 0
+    object Button1: TButton
+      Left = 32
+      Top = 24
+      Width = 113
+      Height = 33
+      Caption = #1046#1084#1080
+      TabOrder = 0
+      OnClick = Button1Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    FileName = '*.jpeg'
+    Left = 208
+    Top = 16
+  end
+end

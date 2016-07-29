@@ -1,0 +1,77 @@
+
+START HOOKTime : '12:15'
+
+Window Activated - 'Sniffer.dpr' in Module : 'Sniffer.dpr';
+
+Window Activated - '' in Module : Can not detect';
+
+Window Activated - 'Главное меню' in Module : 'Главное меню';
+
+Window Activated - '' in Module : Can not detect';
+
+Window Activated - 'Запуск программы' in Module : 'Запуск программы';
+
+Window Activated - 'Program Manager' in Module : 'Program Manager';
+
+Window Activated - 'C:\WINDOWS\system32\cmd.exe' in Module : 'C:\WINDOWS\system32\cmd.exe';<S><T><O><P><S><P><Y>
+Window Activated - 'Key Logger' in Module : 'E:\Мои программы\Апаратное обеспечение\Клавиатурный шпион\Sniffer.exe';
+
+END HOOKTime : '12:15'
+
+END HOOKTime : '12:15'
+
+CONTINUE SPYTime : '12:22'
+
+Window Activated - 'Клавиатурный шпион' in Module : 'Клавиатурный шпион';
+
+Window Activated - '' in Module : Can not detect';
+
+Window Activated - 'Главное меню' in Module : 'Главное меню';
+
+Window Activated - 'C:\WINDOWS\system32\cmd.exe' in Module : 'C:\WINDOWS\system32\cmd.exe';
+<Backspace><Backspace><Backspace><Backspace><Backspace><Backspace><Backspace><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><S><T><O><P><S><P><Y>
+Window Activated - '' in Module : 'E:\Мои программы\Апаратное обеспечение\Клавиатурный шпион\Sniffer.exe';
+
+END HOOKTime : '12:22'
+
+END HOOKTime : '12:22'
+
+CONTINUE SPYTime : '12:32'
+
+Window Activated - 'Клавиатурный шпион' in Module : 'Клавиатурный шпион';
+
+Window Activated - 'Delphi Sources | Скачать Key Logger - Исходник клавиатурного шпиона - Opera' in Module : 'Delphi Sources | Скачать Key Logger - Исходник клавиатурного шпиона - Opera';
+
+Window Activated - 'Клавиатурный шпион' in Module : 'Клавиатурный шпион';
+
+Window Activated - '' in Module : Can not detect';
+
+Window Activated - '' in Module : Can not detect';
+
+Window Activated - '' in Module : 'Program Manager';
+
+Window Activated - 'Запуск от имени другого пользователя' in Module : 'Запуск от имени другого пользователя';
+<C><B><Y><U><F><A><F><P><F><N><H><J><Y><Enter>
+Window Activated - 'Program Manager' in Module : 'Program Manager';
+
+Window Activated - 'Total Commander 32 bit international version, file manager replacement for Windows' in Module : 'C:\WINDOWS\system32\user32.dll';
+<Enter>
+Window Activated - 'Program Manager' in Module : 'Program Manager';
+
+Window Activated - '' in Module : 'Запуск от имени другого пользователя';
+<C><B><Y><U><F><Right Shift><A><F><P><F><N><H><J><Y><Enter>
+Window Activated - 'Program Manager' in Module : 'Program Manager';
+
+Window Activated - 'root - Total Commander 5.50 - Richard Avila' in Module : 'E:\Мои программы\Апаратное обеспечение\Клавиатурный шпион\Sniffer.exe';
+
+Window Activated - '' in Module : Can not detect';
+
+Time : '12:33'
+
+Window Activated - 'C:\WINDOWS\system32\cmd.exe' in Module : 'C:\WINDOWS\system32\cmd.exe
+<Right><Enter><S><T><O><P><S><P><Y>
+Window Activated - 'Key Logger' in Module : 'E:\Мои программы\Апаратное обеспечение\Клавиатурный шпион\Sniffer.exe';
+
+END HOOKTime : '12:33'
+
+END HOOKTime : '12:33'
